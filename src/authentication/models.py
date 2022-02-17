@@ -1,6 +1,6 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
+from django.db import models
 
 
 class User(AbstractUser):
@@ -11,15 +11,4 @@ class User(AbstractUser):
     email and last_name and first_name and password are required.
     Other fields are optional.
     """
-
-    email = models.EmailField(
-        _('email address'),
-        unique=True,
-        error_messages={
-            'unique': _("A user with that email adress already exists."),
-        },
-    )
-    username = None
-    EMAIL_FIELD = 'email'
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
