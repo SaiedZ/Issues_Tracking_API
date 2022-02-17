@@ -27,8 +27,8 @@ class Contributor(models.Model):
     """
     CREATOR, CONTRIBUTOR = 'CREA', 'CONT'
     ROLE_CHOICES = [
-        CREATOR, 'Créateur',
-        CONTRIBUTOR, 'Contributeur ',
+        (CREATOR, 'Créateur'),
+        (CONTRIBUTOR, 'Contributeur'),
     ]
 
     contributor = models.ForeignKey(to=User, on_delete=models.CASCADE,
@@ -51,21 +51,21 @@ class Issue(models.Model):
     """
     LOW, MEDIUM, HIGH = 'LOW', 'MED', 'SUP'
     PRIORITY_CHOICES = [
-        LOW, 'FAIBLE',
-        MEDIUM, 'MOYENNE ',
-        HIGH, 'ÉLEVÉE',
+        (LOW, 'FAIBLE'),
+        (MEDIUM, 'MOYENNE'),
+        (HIGH, 'ÉLEVÉE'),
     ]
     BUG, IMPROVE, TASK = 'BUG', 'IMP', 'TSK'
     TAG_CHOICES = [
-        BUG, 'BUG',
-        IMPROVE, 'AMÉLIORATION',
-        TASK, 'TÂCHE',
+        (BUG, 'BUG'),
+        (IMPROVE, 'AMÉLIORATION'),
+        (TASK, 'TÂCHE'),
     ]
     TODO, DOING, DONE = 'TOD', 'DOI', 'DON'
     STATUS_CHOICES = [
-        TODO, 'À faire',
-        DOING, 'En cours',
-        DONE, 'Terminé',
+        (TODO, 'À faire'),
+        (DOING, 'En cours'),
+        (DONE, 'Terminé'),
     ]
 
     title = models.CharField(_('title'), max_length=128)
