@@ -22,6 +22,5 @@ urlpatterns = [
     path('api/v1/', include('rest_framework.urls',
                             namespace='rest_framework')),
     path('api/v1/', include('authentication.urls')),
+    path('api/v1/', include('issuestracking.urls')),
 ]
-
-"""path('', include('issuestracking.urls')),"""

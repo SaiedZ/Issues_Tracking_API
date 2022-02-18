@@ -11,12 +11,12 @@ class Project(models.Model):
 
     Only author is allowed to modify the project.
     """
-    title = models.CharField(_('title'), max_length=128)
+    title = models.CharField(_('title'), max_length=128, unique=True)
     description = models.CharField(_('description'), max_length=256)
     type = models.CharField(_('type'), max_length=128)
-    author = models.ForeignKey(to=User, on_delete=models.SET_NULL,
-                               blank=True, null=True,
-                               verbose_name=_('author'))
+
+    def __str__(self):
+        return f"{self.title}"
 
 
 class Contributor(models.Model):
@@ -31,8 +31,8 @@ class Contributor(models.Model):
         (CONTRIBUTOR, 'Contributeur'),
     ]
 
-    contributor = models.ForeignKey(to=User, on_delete=models.CASCADE,
-                                    related_name='contributors')
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE,
+                             related_name='users')
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE,
                                 related_name='projects')
     role = models.CharField(max_length=128, choices=ROLE_CHOICES,
@@ -40,7 +40,7 @@ class Contributor(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['contributor', 'project'],
+            models.UniqueConstraint(fields=['user', 'project'],
                                     name=('no_double_contributor')),
         ]
 
@@ -68,7 +68,7 @@ class Issue(models.Model):
         (DONE, 'Terminé'),
     ]
 
-    title = models.CharField(_('title'), max_length=128)
+    title = models.CharField(_('title'), max_length=128, unique=True)
     description = models.CharField(_('description'), max_length=256)
     tag = models.CharField(_('tag'), max_length=3,
                            choices=TAG_CHOICES, default=BUG)
