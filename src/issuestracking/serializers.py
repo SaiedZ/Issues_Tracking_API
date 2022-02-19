@@ -10,7 +10,6 @@ class ProjectListSerializer(serializers.ModelSerializer):
     """
     A serializer for project objects, list display
     """
-
     class Meta:
         model = models.Project
         fields = ['id', 'title', 'description', 'type']
@@ -37,7 +36,6 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
     Used for detail display
     """
-
     author = serializers.SerializerMethodField()
 
     class Meta:
@@ -55,6 +53,7 @@ class ContributorSerializer(serializers.ModelSerializer):
     """
     A serializer for contributo objects.
     """
+    role = serializers.CharField(source='get_role_display')
 
     class Meta:
         model = models.Contributor
@@ -67,6 +66,10 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
     """
 
     def __init__(self, *args, **kwargs):
+        """
+        Create the instance and set default value for `project` and
+        the queryset for `user`
+        """
         super().__init__(*args, **kwargs)
         self.fields['user'] = serializers.PrimaryKeyRelatedField(
             queryset=self.get_user_queryset())
@@ -79,10 +82,7 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
 
     def get_project_queryset(self):
         project_id = self.context.get("project_id")
-        projects = models.Project.objects.filter(id=project_id)
-        if projects:
-            return projects
-        return None
+        return models.Project.objects.filter(id=project_id)
 
     def get_user_queryset(self):
         project_id = self.context.get("project_id")
