@@ -1,17 +1,22 @@
 from django.urls import include, path
 from . import views
-from rest_framework.routers import DefaultRouter
+from rest_framework_nested import routers
 
-router = DefaultRouter(trailing_slash=False)
+router = routers.DefaultRouter()
 
-router.register('projects',
+router.register(r'projects',
                 views.ProjectViewSet,
                 basename='projects')
 
-router.register('^projects/(?P<project_id>.+)/users',
-                views.ContributorViewSet,
-                basename='contributors')
+contributors_router = routers.NestedDefaultRouter(router,
+                                                  r'projects',
+                                                  lookup='project')
+
+contributors_router.register(r'users',
+                             views.ContributorViewSet,
+                             basename='project-contributors')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path(r'', include(router.urls)),
+    path(r'', include(contributors_router.urls)),
 ]

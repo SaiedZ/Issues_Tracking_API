@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework.generics import get_object_or_404
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -37,22 +38,15 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     """
     A serializer for project objects. Used for detail display
     """
-    authors = serializers.SerializerMethodField()
-    members = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Project
-        fields = ['id', 'title', 'description', 'type', 'authors', 'members']
+        fields = ['id', 'title', 'description', 'type', 'author']
 
-    def get_authors(self, instance):
+    def get_author(self, instance):
         queryset = models.Contributor.objects.filter(project=instance,
                                                      permission='CREA')
-        serializer = ContributorSerializer(queryset, many=True)
-        return serializer.data
-
-    def get_members(self, instance):
-        queryset = models.Contributor.objects.filter(project=instance,
-                                                     permission='CONT')
         serializer = ContributorSerializer(queryset, many=True)
         return serializer.data
 
@@ -62,11 +56,10 @@ class ContributorSerializer(serializers.ModelSerializer):
     A serializer for contributo objects.
     """
     role = serializers.CharField(source='get_role_display')
-    permission = serializers.CharField(source='get_permission_display')
 
     class Meta:
         model = models.Contributor
-        fields = ['id', 'user', 'project', 'role', 'permission']
+        fields = ['id', 'user', 'project', 'role']
 
 
 class ContributorCreateSerializer(serializers.ModelSerializer):
@@ -91,9 +84,17 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
 
     def get_project_queryset(self):
         project_pk = self.context.get("project_pk")
-        return get_object_or_404(models.Project, pk=project_pk)
+        if project_pk.isnumeric():
+            return get_object_or_404(models.Project, pk=project_pk)
+        """if not models.Project.objects.filter(id=project_pk).exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return project"""
+        raise Http404("No matches the given query")
 
     def get_user_queryset(self):
         project_pk = self.context.get("project_pk")
-        users_id_to_exclude = utils.get_project_users_id(project_pk)
-        return User.objects.exclude(id__in=users_id_to_exclude)
+        if True: # project_pk.isnumeric():
+            if utils.get_project_users_id(project_pk):
+                users_id_to_exclude = utils.get_project_users_id(project_pk)
+                return User.objects.exclude(id__in=users_id_to_exclude)
+        raise Http404("No matches the given query")

@@ -1,6 +1,7 @@
 from authentication.serializers import CreateUserSerializer
 from rest_framework import generics
-from . import models, permissions
+from rest_framework import permissions
+from . import models
 
 
 class CreateUserViewSet(generics.CreateAPIView):
@@ -12,4 +13,4 @@ class CreateUserViewSet(generics.CreateAPIView):
 
     serializer_class = CreateUserSerializer
     queryset = models.User.objects.all()
-    permission_classes = [permissions.IsNotAuthenticated]
+    permission_classes = [~permissions.IsAuthenticated]

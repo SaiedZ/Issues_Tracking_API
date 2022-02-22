@@ -26,17 +26,25 @@ class Contributor(models.Model):
     They are allowed to add issues and comments.
     """
     CREATOR, CONTRIBUTOR = 'CREA', 'CONT'
-    ROLE_CHOICES = [
+    PERMISSIONS = [
         (CREATOR, 'Créateur'),
         (CONTRIBUTOR, 'Contributeur'),
+    ]
+
+    PROJECT_MANAGER, PROJECT_STAFF = 'PM', 'PS'
+    ROLE_CHOICES = [
+        (PROJECT_MANAGER, 'Project manager'),
+        (PROJECT_STAFF, 'Project staff'),
     ]
 
     user = models.ForeignKey(to=User, on_delete=models.CASCADE,
                              related_name='users')
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE,
                                 related_name='projects')
+    permission = models.CharField(max_length=128, choices=PERMISSIONS,
+                                  default=CONTRIBUTOR)
     role = models.CharField(max_length=128, choices=ROLE_CHOICES,
-                            default=CONTRIBUTOR)
+                            default=PROJECT_STAFF)
 
     class Meta:
         constraints = [
