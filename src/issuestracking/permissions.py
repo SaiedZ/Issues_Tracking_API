@@ -12,6 +12,8 @@ class CheckIsProjectMemberOrContrCreaMixin:
             model_view = models.Issue
         if type(view) == views.ContributorViewSet:
             model_view = models.Contributor
+        if type(view) == views.CommentViewSet:
+            model_view = models.Comment
         return model_view
 
     def has_permission(self, request, view):
@@ -23,6 +25,8 @@ class CheckIsProjectMemberOrContrCreaMixin:
         requiered for creating (adding) contributor
         """
         project_pk = view.kwargs.get('project_pk')
+        if not project_pk.isnumeric():
+            return False
         user_contributor = models.Contributor.objects.filter(
             project_id=project_pk, user_id=request.user.id
         )
@@ -114,3 +118,26 @@ class IsIssueOwnerOrReadOnlyIssueObject(
         ):
             return True
         return user_contrib[0].user_id in authorized_users_id
+
+
+class IsIssueOwnerOrReadOnlyCommentObject(
+     CheckIsProjectMemberOrContrCreaMixin, permissions.BasePermission):
+
+    """
+    Manages permissions for Comment objects.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Only author is allowed to update and delete a comment
+        """
+        project_pk = view.kwargs.get('project_pk')
+        user_contrib = models.Contributor.objects.filter(
+            project_id=project_pk, user_id=request.user.id
+        )
+        if (
+            view.action in SAFE_ACTIONS
+            and user_contrib.exists()
+        ):
+            return True
+        return user_contrib[0].user_id == obj.author_user_id

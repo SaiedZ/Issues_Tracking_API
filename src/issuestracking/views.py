@@ -6,7 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from .permissions import (IsOwnerOrContributorForReadOnly,
                           IsProjectManagerOrReadOnlyContributorObject,
-                          IsIssueOwnerOrReadOnlyIssueObject)
+                          IsIssueOwnerOrReadOnlyIssueObject,
+                          IsIssueOwnerOrReadOnlyCommentObject)
 from . import serializers, models, utils
 
 
@@ -42,28 +43,19 @@ class ContributorViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'delete', 'option', 'head']
     permission_classes = [IsProjectManagerOrReadOnlyContributorObject]
 
-    def validate_project_id(self):
-        """
-        Ensure that the project_id is valid (is integer)
-        """
-        project_pk = self.kwargs["project_pk"]
-        if not project_pk.isnumeric():
-            raise Http404("No matches the given query")
-        return project_pk
-
     def get_queryset(self):
         """
         Get the list of items for this view.
         """
-        project_pk = self.validate_project_id()
-        return models.Contributor.objects.filter(project_id=project_pk)
+        return models.Contributor.objects.filter(
+            project_id=self.kwargs["project_pk"])
 
     def get_serializer_context(self):
         """
         Extra context provided to the serializer class.
         """
         context = super().get_serializer_context()
-        context["project_pk"] = self.validate_project_id()
+        context["project_pk"] = self.kwargs["project_pk"]
         return context
 
 
@@ -78,28 +70,58 @@ class IssueViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
 
     permission_classes = [IsIssueOwnerOrReadOnlyIssueObject]
 
-    def validate_project_id(self):
-        """
-        Ensure that the project_id is valid (is integer)
-        """
-        project_pk = self.kwargs["project_pk"]
-        if not project_pk.isnumeric():
-            raise Http404("No matches the given query")
-        return project_pk
-
     def get_queryset(self):
         """
         Get the list of items for this view.
         """
-        project_pk = self.validate_project_id()
-        return models.Issue.objects.filter(project_id=project_pk)
+        return models.Issue.objects.filter(
+            project_id=self.kwargs["project_pk"])
 
     def get_serializer_context(self):
         """
         Extra context provided to the serializer class.
         """
         context = super().get_serializer_context()
-        context["project_pk"] = self.validate_project_id()
+        '''self.validate_parent_lookup_kwargs()'''
+        context["project_pk"] = self.kwargs["project_pk"]
+        context["view_action"] = self.action
+        context["request"] = self.request
+        return context
+
+
+class CommentViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
+    """
+    Comment view based on ModelViewSet
+    """
+
+    serializers = {
+        'default': serializers.CommentSerializer,
+    }
+    http_method_names = ['get', 'post', 'delete', 'put', 'option', 'head']
+    permission_classes = [IsIssueOwnerOrReadOnlyCommentObject]
+
+    def get_queryset(self):
+        """
+        Get the list of items for this view.
+
+        Verrify also that the issue_pk is part of the project_pk,
+        otherwise it will raise a 404
+        """
+        queryset = models.Comment.objects.select_related('issue').filter(
+            issue_id=self.kwargs["issue_pk"])
+        if (
+            not queryset.exists()
+            or str(queryset[0].issue.project_id) != self.kwargs["project_pk"]
+        ):
+            raise Http404("No matches the given query")
+        return queryset
+
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        context = super().get_serializer_context()
+        context["issue_pk"] = self.kwargs["issue_pk"]
         context["view_action"] = self.action
         context["request"] = self.request
         return context

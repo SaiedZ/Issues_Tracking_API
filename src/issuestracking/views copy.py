@@ -1,25 +1,16 @@
-from django.http import Http404
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework import status
+from django.http import Http404
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .permissions import IsOwnerOrContributorForReadOnly
+
+from .permissions import (IsOwnerOrContributorForReadOnly,
+                          IsProjectManagerOrReadOnlyContributorObject,
+                          IsIssueOwnerOrReadOnlyIssueObject)
 from . import serializers, models, utils
 
 
-class MultipleSerializerMixin:
-    """
-    Manages the choice of serialization depending on the method
-    """
-
-    def get_serializer_class(self):
-        if self.action in self.serializers.keys():
-            return self.serializers[self.action]
-        return self.serializers['default']
-
-
-class ProjectViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
+class ProjectViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
     """
     Project View based on ModelViewSet
     """
@@ -29,20 +20,17 @@ class ProjectViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
         'retrieve': serializers.ProjectDetailSerializer,
     }
 
-    permission_classes = [
-        IsAuthenticated,
-        IsOwnerOrContributorForReadOnly
-    ]
+    permission_classes = [IsAuthenticated & IsOwnerOrContributorForReadOnly]
 
     def get_queryset(self):
         """
         Get the list of items for this view.
         """
-        user_projects_id = utils.get_user_projects_id(self.request.user)
-        return models.Project.objects.filter(id__in=user_projects_id)
+        return models.Project.objects.filter(
+            projects__user_id=self.request.user.id).distinct()
 
 
-class ContributorViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
+class ContributorViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
     """
     Contributor view based on ModelViewSet
     """
@@ -51,19 +39,23 @@ class ContributorViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
         'default': serializers.ContributorSerializer,
         'create': serializers.ContributorCreateSerializer,
     }
+    http_method_names = ['get', 'post', 'delete', 'option', 'head']
+    permission_classes = [IsProjectManagerOrReadOnlyContributorObject]
 
-    http_method_names = ['get', 'post', 'delete', 'head', 'options']
+    def validate_project_id(self):
+        """
+        Ensure that the project_id is valid (is integer)
+        """
+        project_pk = self.kwargs["project_pk"]
+        if not project_pk.isnumeric():
+            raise Http404("No matches the given query")
+        return project_pk
 
     def get_queryset(self):
         """
         Get the list of items for this view.
         """
-        project_pk = self.kwargs["project_pk"]
-        if not project_pk.isnumeric():
-            raise Http404("No matches the given query")
-        """if not models.Contributor.objects.filter(project_pk=project_pk).exists():
-            print(not models.Contributor.objects.filter(project_pk=project_pk).exists())
-            raise Http404("No matches the given query")"""
+        project_pk = self.validate_project_id()
         return models.Contributor.objects.filter(project_id=project_pk)
 
     def get_serializer_context(self):
@@ -71,16 +63,75 @@ class ContributorViewSet(MultipleSerializerMixin, viewsets.ModelViewSet):
         Extra context provided to the serializer class.
         """
         context = super().get_serializer_context()
-        context["project_pk"] = self.kwargs["project_pk"]
+        context["project_pk"] = self.validate_project_id()
         return context
 
-    """def list(self, request, project_pk=None, *args, **kwargs):
-        if not project_pk.isnumeric():
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        project = get_object_or_404(models.Project, id=project_pk)
-        self.check_object_permissions(request, project)
-        if not models.Project.objects.filter(id=project_pk).exists():
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        queryset = models.Contributor.objects.filter(project=project_pk)
-        serializer = self.get_serializer_class()(queryset, many=True)
-        return Response(serializer.data)"""
+
+class IssueViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
+    """
+    Issue view based on ModelViewSet
+    """
+
+    serializers = {
+        'default': serializers.IssueSerializer,
+    }
+
+    permission_classes = [IsIssueOwnerOrReadOnlyIssueObject]
+
+    def get_queryset(self):
+        """
+        Get the list of items for this view.
+        """
+        return models.Issue.objects.filter(
+            project_id=self.kwargs["project_pk"])
+
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        context = super().get_serializer_context()
+        '''self.validate_parent_lookup_kwargs()'''
+        context["project_pk"] = self.kwargs["project_pk"]
+        context["view_action"] = self.action
+        context["request"] = self.request
+        return context
+
+
+class CommentViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
+    """
+    Comment view based on ModelViewSet
+    """
+
+    serializers = {
+        'default': serializers.CommentSerializer,
+    }
+
+    permission_classes = [IsIssueOwnerOrReadOnlyIssueObject]
+
+    def validate_parent_lookup_kwargs(self):
+        """
+        Ensure that the project_id and the issue_id are valids (integer)
+        """
+        project_pk = self.kwargs["project_pk"]
+        issue_pk = self.kwargs["issue_pk"]
+        if not (project_pk.isnumeric() and issue_pk.isnumeric()):
+            raise Http404("No matches the given query")
+
+    def get_queryset(self):
+        """
+        Get the list of items for this view.
+        """
+        self.validate_parent_lookup_kwargs()
+        return models.Issue.objects.filter(
+            project_id=self.kwargs["project_pk"])
+
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        context = super().get_serializer_context()
+        self.validate_parent_lookup_kwargs()
+        context["project_pk"] = self.kwargs["project_pk"]
+        context["view_action"] = self.action
+        context["request"] = self.request
+        return context

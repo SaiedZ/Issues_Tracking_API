@@ -94,9 +94,9 @@ class Issue(models.Model):
 
 class Comment(models.Model):
     description = models.CharField(_('description'), max_length=256)
-    author = models.ForeignKey(to=User, on_delete=models.SET_NULL,
-                               blank=True, null=True,
-                               related_name='comment_author')
+    author_user = models.ForeignKey(to=User, on_delete=models.SET_NULL,
+                                    blank=True, null=True,
+                                    related_name='comment_author')
     issue = models.ForeignKey(to=Issue, on_delete=models.SET_NULL,
                               blank=True, null=True,
                               related_name='comment_issue')

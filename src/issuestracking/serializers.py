@@ -2,7 +2,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from issuestracking import utils
 import authentication
 from . import models
 
@@ -86,6 +85,7 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
             queryset=self.get_user_queryset())
         self.fields['project'] = serializers.HiddenField(
             default=self.get_project_queryset())
+        print('hello', self.context)
 
     class Meta:
         model = models.Contributor
@@ -121,7 +121,7 @@ class IssueSerializer(serializers.ModelSerializer):
             self.fields['project'] = serializers.HiddenField(
                 default=self.get_project_queryset())
             self.fields['author_user'] = serializers.HiddenField(
-                default=self.context.get('request').user.id)
+                default=self.context.get('request').user)
 
     class Meta:
         model = models.Issue
@@ -134,6 +134,50 @@ class IssueSerializer(serializers.ModelSerializer):
     def get_user_queryset(self):
         project_pk = self.context.get("project_pk")
         return User.objects.filter(users__project_id=project_pk)
+
+    def to_representation(self, instance):
+        """
+        Object instance -> Dict of primitive datatypes.
+        modifies the format of created_time
+        """
+        ret = super().to_representation(instance)
+        ret['created_time'] = instance.created_time.strftime(
+            "%H:%M:%S %d-%m-%Y")
+        return ret
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """
+    A serializer for comment objects.
+    """
+    issue = serializers.SlugRelatedField(read_only=True, slug_field='title')
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize and if the view action is `create`:
+            - the author will be the request user
+            - the issue will be set using the issue_id from the url
+        If the view action is `update`:
+            - the author field is removed so it will remains the inchaged
+            - the issue  field is removed so it will remains the inchaged
+        """
+        super().__init__(*args, **kwargs)
+        if self.context['view_action'] == 'create':
+            self.fields['issue'] = serializers.HiddenField(
+                default=self.get_issue_queryset())
+            self.fields['author_user'] = serializers.HiddenField(
+                default=self.context.get('request').user)
+        if self.context['view_action'] == 'update':
+            self.fields.pop('issue')
+            self.fields.pop('author_user')
+
+    class Meta:
+        model = models.Comment
+        fields = '__all__'
+
+    def get_issue_queryset(self):
+        issue_pk = self.context.get("issue_pk")
+        return get_object_or_404(models.Issue, pk=issue_pk)
 
     def to_representation(self, instance):
         """
