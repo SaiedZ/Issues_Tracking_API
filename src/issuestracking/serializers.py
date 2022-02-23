@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 from issuestracking import utils
-
+import authentication
 from . import models
 
 User = get_user_model()
@@ -59,10 +59,12 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
 class ContributorSerializer(serializers.ModelSerializer):
     """
-    A serializer for contributo objects.
+    A serializer for contributor objects.
     """
     role = serializers.CharField(source='get_role_display')
     permission = serializers.CharField(source='get_permission_display')
+    user = authentication.serializers.UserSerializer()
+    project = serializers.SlugRelatedField(read_only=True, slug_field='title')
 
     class Meta:
         model = models.Contributor
@@ -71,7 +73,7 @@ class ContributorSerializer(serializers.ModelSerializer):
 
 class ContributorCreateSerializer(serializers.ModelSerializer):
     """
-    A serializer for contributo objects.
+    A serializer for creating contributor objects.
     """
 
     def __init__(self, *args, **kwargs):
@@ -95,5 +97,50 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
 
     def get_user_queryset(self):
         project_pk = self.context.get("project_pk")
-        users_id_to_exclude = utils.get_project_users_id(project_pk)
-        return User.objects.exclude(id__in=users_id_to_exclude)
+        return User.objects.exclude(users__project_id=project_pk)
+
+
+class IssueSerializer(serializers.ModelSerializer):
+    """
+    A serializer for issue objects.
+    """
+    project = serializers.SlugRelatedField(read_only=True, slug_field='title')
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize and if the view action is `create`:
+            - the assignee will be by default the request user
+            - the project will be set using the project_id from the url
+            - the author is request.user
+        """
+        super().__init__(*args, **kwargs)
+        self.fields['assignee_user'] = serializers.PrimaryKeyRelatedField(
+            queryset=self.get_user_queryset(),
+            initial=self.context.get('request').user.id)
+        if self.context['view_action'] == 'create':
+            self.fields['project'] = serializers.HiddenField(
+                default=self.get_project_queryset())
+            self.fields['author_user'] = serializers.HiddenField(
+                default=self.context.get('request').user.id)
+
+    class Meta:
+        model = models.Issue
+        fields = '__all__'
+
+    def get_project_queryset(self):
+        project_pk = self.context.get("project_pk")
+        return get_object_or_404(models.Project, pk=project_pk)
+
+    def get_user_queryset(self):
+        project_pk = self.context.get("project_pk")
+        return User.objects.filter(users__project_id=project_pk)
+
+    def to_representation(self, instance):
+        """
+        Object instance -> Dict of primitive datatypes.
+        modifies the format of created_time
+        """
+        ret = super().to_representation(instance)
+        ret['created_time'] = instance.created_time.strftime(
+            "%H:%M:%S %d-%m-%Y")
+        return ret

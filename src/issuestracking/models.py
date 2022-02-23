@@ -85,8 +85,10 @@ class Issue(models.Model):
     status = models.CharField(_('status'), max_length=3,
                               choices=STATUS_CHOICES, default=TODO)
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
+    author_user = models.ForeignKey(to=User, on_delete=models.SET_NULL,
+                                    null=True, related_name='author_user')
     assignee_user = models.ForeignKey(to=User, on_delete=models.SET_NULL,
-                                      blank=True, null=True)
+                                      null=True, related_name='assignee_user')
     created_time = models.DateTimeField(auto_now_add=True)
 
 
