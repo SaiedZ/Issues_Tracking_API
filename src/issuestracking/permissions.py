@@ -40,24 +40,6 @@ class CheckIsProjectMemberOrContrCreaMixin:
             return user_contributor[0].permission == "CREA"
         return user_contributor_exist
 
-    '''def has_permission_queryset(self, request, view, user_field):
-        project_pk = view.kwargs.get('project_pk')
-        filter_kwargs = {
-            f"{user_field}": request.user,
-            }
-        return self.get_model_view(view).objects.filter(
-            project_id=project_pk, **filter_kwargs)
-
-    def has_permission(self, request, view):
-        """
-        Only project staff and project manager have access to contributors
-        """
-        print('has_permission', view.action)
-        user_field = 'assignee_user'
-        print(self.has_permission_queryset(request, view, user_field))
-        return self.has_permission_queryset(
-            request, view, user_field).exists()'''
-
 
 class IsOwnerOrContributorForReadOnly(permissions.BasePermission):
     """
@@ -106,7 +88,7 @@ class IsIssueOwnerOrReadOnlyIssueObject(
         Only author or assignee users are allowed to update and delete issue
         """
         authorized_users_id = [
-            obj.assignee_user_id,
+            # obj.assignee_user_id,
             obj.author_user_id,
         ]
         user_contrib = models.Contributor.objects.filter(

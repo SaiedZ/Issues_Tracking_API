@@ -1,8 +1,6 @@
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
-from django.http import Http404
-from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
+from django.http import Http404
 
 from .permissions import (IsOwnerOrContributorForReadOnly,
                           IsProjectManagerOrReadOnlyContributorObject,
@@ -82,7 +80,6 @@ class IssueViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
         Extra context provided to the serializer class.
         """
         context = super().get_serializer_context()
-        '''self.validate_parent_lookup_kwargs()'''
         context["project_pk"] = self.kwargs["project_pk"]
         context["view_action"] = self.action
         context["request"] = self.request

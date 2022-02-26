@@ -1,6 +1,6 @@
 from rest_framework.generics import get_object_or_404
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
 
 import authentication
 from . import models
@@ -10,7 +10,7 @@ User = get_user_model()
 
 class ProjectListSerializer(serializers.ModelSerializer):
     """
-    A serializer for project objects, list display
+    A serializer for project objects, list display.
     """
     class Meta:
         model = models.Project
@@ -20,7 +20,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         """
         Create and return a new `Project` instance, given the validated data.
 
-        Create a contributor with the CREATOR role and the current project
+        Create a contributor with the CREATOR role and the current project.
         """
         project = super().create(validated_data)
         user = self.context['request'].user
@@ -85,7 +85,6 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
             queryset=self.get_user_queryset())
         self.fields['project'] = serializers.HiddenField(
             default=self.get_project_queryset())
-        print('hello', self.context)
 
     class Meta:
         model = models.Contributor
