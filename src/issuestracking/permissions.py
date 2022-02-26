@@ -64,9 +64,12 @@ class IsProjectManagerOrReadOnlyContributorObject(
     def has_object_permission(self, request, view, obj):
         """
         Only project manager is allowed to add and delete contributor
-        It's frobidden to delete the Project Manager's contributor object
+        It's frobidden to delete a project manager if it's the only one.
         """
-        if obj.permission == "CREA":
+        project_managers = models.Contributor.objects.filter(
+            project_id=obj.project_id, permission="CREA"
+        )
+        if project_managers.count() == 1:
             return False
         user_contrib = models.Contributor.objects.filter(
             project_id=obj.project_id, user_id=request.user.id

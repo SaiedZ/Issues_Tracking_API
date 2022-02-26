@@ -66,6 +66,9 @@ class IssueViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
     }
 
     permission_classes = [IsAuthorOrReadOnly]
+
+    http_method_names = ['get', 'post', 'delete', 'put', 'option', 'head']
+
     def get_queryset(self):
         """
         Get the list of items for this view.

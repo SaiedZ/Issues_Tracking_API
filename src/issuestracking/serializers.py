@@ -81,14 +81,14 @@ class ContributorCreateSerializer(serializers.ModelSerializer):
         the queryset for `user`
         """
         super().__init__(*args, **kwargs)
-        self.fields['user'] = serializers.PrimaryKeyRelatedField(
-            queryset=self.get_user_queryset())
+        self.fields['user'] = serializers.SlugRelatedField(
+            queryset=self.get_user_queryset(), slug_field='username')
         self.fields['project'] = serializers.HiddenField(
             default=self.get_project_queryset())
 
     class Meta:
         model = models.Contributor
-        fields = ['id', 'user', 'project']
+        fields = ['id', 'user', 'role', 'permission']
 
     def get_project_queryset(self):
         project_pk = self.context.get("project_pk")
@@ -113,9 +113,11 @@ class IssueSerializer(serializers.ModelSerializer):
             - the author is request.user
         """
         super().__init__(*args, **kwargs)
-        self.fields['assignee_user'] = serializers.PrimaryKeyRelatedField(
+        self.fields['assignee_user'] = serializers.SlugRelatedField(
             queryset=self.get_user_queryset(),
-            initial=self.context.get('request').user.id)
+            initial=self.context.get('request').user.username,
+            slug_field='username'
+            )
         if self.context['view_action'] == 'create':
             self.fields['project'] = serializers.HiddenField(
                 default=self.get_project_queryset())
@@ -151,28 +153,19 @@ class CommentSerializer(serializers.ModelSerializer):
     """
     issue = serializers.SlugRelatedField(read_only=True, slug_field='title')
 
-    def __init__(self, *args, **kwargs):
-        """
-        Initialize and if the view action is `create`:
-            - the author will be the request user
-            - the issue will be set using the issue_id from the url
-        If the view action is `update`:
-            - the author field is removed so it will remains the inchaged
-            - the issue  field is removed so it will remains the inchaged
-        """
-        super().__init__(*args, **kwargs)
-        if self.context['view_action'] == 'create':
-            self.fields['issue'] = serializers.HiddenField(
-                default=self.get_issue_queryset())
-            self.fields['author_user'] = serializers.HiddenField(
-                default=self.context.get('request').user)
-        if self.context['view_action'] == 'update':
-            self.fields.pop('issue')
-            self.fields.pop('author_user')
-
     class Meta:
         model = models.Comment
         fields = '__all__'
+        read_only_fields = ['issue', 'author_user']
+
+    def create(self, validated_data):
+        """ Create and return new comment"""
+
+        comment = super().create(validated_data)
+        comment.issue = self.get_issue_queryset()
+        comment.author_user = self.context.get('request').user
+        comment.save()
+        return comment
 
     def get_issue_queryset(self):
         issue_pk = self.context.get("issue_pk")
