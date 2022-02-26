@@ -4,8 +4,7 @@ from django.http import Http404
 
 from .permissions import (IsOwnerOrContributorForReadOnly,
                           IsProjectManagerOrReadOnlyContributorObject,
-                          IsIssueOwnerOrReadOnlyIssueObject,
-                          IsIssueOwnerOrReadOnlyCommentObject)
+                          IsAuthorOrReadOnly)
 from . import serializers, models, utils
 
 
@@ -66,8 +65,7 @@ class IssueViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
         'default': serializers.IssueSerializer,
     }
 
-    permission_classes = [IsIssueOwnerOrReadOnlyIssueObject]
-
+    permission_classes = [IsAuthorOrReadOnly]
     def get_queryset(self):
         """
         Get the list of items for this view.
@@ -95,7 +93,7 @@ class CommentViewSet(utils.MultipleSerializerMixin, viewsets.ModelViewSet):
         'default': serializers.CommentSerializer,
     }
     http_method_names = ['get', 'post', 'delete', 'put', 'option', 'head']
-    permission_classes = [IsIssueOwnerOrReadOnlyCommentObject]
+    permission_classes = [IsAuthorOrReadOnly]
 
     def get_queryset(self):
         """

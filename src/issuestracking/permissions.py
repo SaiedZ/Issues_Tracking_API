@@ -76,33 +76,7 @@ class IsProjectManagerOrReadOnlyContributorObject(
         return user_contrib[0].permission == "CREA"
 
 
-class IsIssueOwnerOrReadOnlyIssueObject(
-     CheckIsProjectMemberOrContrCreaMixin, permissions.BasePermission):
-
-    """
-    Manages permissions for Issue objects.
-    """
-
-    def has_object_permission(self, request, view, obj):
-        """
-        Only author or assignee users are allowed to update and delete issue
-        """
-        authorized_users_id = [
-            # obj.assignee_user_id,
-            obj.author_user_id,
-        ]
-        user_contrib = models.Contributor.objects.filter(
-            project_id=obj.project_id, user_id=request.user.id
-        )
-        if (
-            view.action in RESTRICTED_SAFE_ACTIONS
-            and user_contrib.exists()
-        ):
-            return True
-        return user_contrib[0].user_id in authorized_users_id
-
-
-class IsIssueOwnerOrReadOnlyCommentObject(
+class IsAuthorOrReadOnly(
      CheckIsProjectMemberOrContrCreaMixin, permissions.BasePermission):
 
     """
