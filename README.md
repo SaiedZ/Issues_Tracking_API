@@ -9,7 +9,7 @@
 
 [API documentation](https://documenter.getpostman.com/view/19779552/UVkqqZyf)
 
-## 📖 What's it ?
+## 📖 :page_with_curl: What's it ?
 
 
 The Issue Tracking API allows users to report and track technical problems (issue tracking system).
