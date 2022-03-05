@@ -18,6 +18,15 @@ Our API is organized around [REST](http://en.wikipedia.org/wiki/Representational
 
 we have built this API respecting the recommendations of the OWASP top [10 recommandations](https://owasp.org/www-project-top-ten/)
 
+## Features
+
+Our API allows users to create various projects, add users, create issues within projects and comment on them. It also allows the assignment of tags, priorities to projects and issues. Finally, it also manages permissions for editing and deletion.
+
+## Technologies
+
+*   Django Rest Framework as backend
+*   JWT (JSON Web Token) the backend authentication
+
 ## 💿 How to setup the API ?
 
 1. First, you will need to download [the source code](https://github.com/SaiedZ/LITReviewWebApp.git) from GitHub.
@@ -25,7 +34,7 @@ we have built this API respecting the recommendations of the OWASP top [10 recom
 3. Go to the unzipped folder using your terminal
 4. You can also clone the repo without dowloading the folder. In this case, don't follow the steps above and just: use these commands (git must be installed):
 ```bash
-git clone https://github.com/SaiedZ/LITReviewWebApp.git
+git clone https://github.com/SaiedZ/issuestrackingapi.git
 cd LITReviewWebApp
 ```
 5. Create your virtual environment with the following command (here I call it .env, but you can call it another way)
@@ -59,3 +68,17 @@ pip install -r requirements.txt
 For more information, refer to the python.org documentation :
 
 [Virtual envirement tutorial](https://docs.python.org/3/tutorial/venv.html)
+
+
+## ⚙️ Launch the development server
+
+First of all, you need to be located in the **src forlder**
+
+To launch the development server locally, just use the `runserver` command from the `manage.py` file:
+
+```
+python manage.py runserver
+``` 
+Of course, you must first ensure that you have activated your virtual environment and that you are in the folder that contains the `manage.py` file.
+
+Once the development server is launched, you can start using the API by following the documentation [API documentation](https://documenter.getpostman.com/view/19779552/UVkqqZyf)
