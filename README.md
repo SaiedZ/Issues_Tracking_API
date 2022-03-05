@@ -7,22 +7,24 @@
 <br>
 
 
-[API documentation](https://documenter.getpostman.com/view/19779552/UVkqqZyf)
-
-## 📖 :page_with_curl: What's it ?
+## :page_with_curl: What's it ?
 
 
 The Issue Tracking API allows users to report and track technical problems (issue tracking system).
+
+Our API allows users to create various projects, add users, create issues within projects and comment on them. It also allows the assignment of tags, priorities to projects and issues. Finally, it also manages permissions for editing and deletion.
 
 Our API is organized around [REST](http://en.wikipedia.org/wiki/Representational_State_Transfer). It uses standard HTTP response codes, authentication, and verbs.
 
 we have built this API respecting the recommendations of the OWASP top [10 recommandations](https://owasp.org/www-project-top-ten/)
 
-## Features
 
-Our API allows users to create various projects, add users, create issues within projects and comment on them. It also allows the assignment of tags, priorities to projects and issues. Finally, it also manages permissions for editing and deletion.
+##  📖  API Documentation
 
-## Technologies
+[API documentation](https://documenter.getpostman.com/view/19779552/UVkqqZyf)
+
+
+## :mag: Technologies
 
 *   Django Rest Framework as backend
 *   JWT (JSON Web Token) the backend authentication
