@@ -1,16 +1,13 @@
-from authentication.serializers import CreateUserSerializer
-from rest_framework import generics
-from rest_framework import permissions
-from . import models
-
-
+from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import (RefreshToken,
                                              TokenError,
                                              OutstandingToken,
                                              BlacklistedToken)
 from rest_framework.response import Response
-from rest_framework import status
+
+from . import models
+from authentication.serializers import CreateUserSerializer
 
 
 class CreateUserViewSet(generics.CreateAPIView):

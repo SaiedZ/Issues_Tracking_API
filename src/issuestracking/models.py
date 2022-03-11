@@ -27,8 +27,8 @@ class Contributor(models.Model):
     """
     CREATOR, CONTRIBUTOR = 'CREA', 'CONT'
     PERMISSIONS = [
-        (CREATOR, 'Créateur'),
-        (CONTRIBUTOR, 'Contributeur'),
+        (CREATOR, 'Creator'),
+        (CONTRIBUTOR, 'Contributor'),
     ]
 
     PROJECT_MANAGER, PROJECT_STAFF = 'PM', 'PS'
@@ -59,21 +59,21 @@ class Issue(models.Model):
     """
     LOW, MEDIUM, HIGH = 'LOW', 'MED', 'SUP'
     PRIORITY_CHOICES = [
-        (LOW, 'FAIBLE'),
-        (MEDIUM, 'MOYENNE'),
-        (HIGH, 'ÉLEVÉE'),
+        (LOW, 'LOW'),
+        (MEDIUM, 'MEDIUM'),
+        (HIGH, 'HIGH'),
     ]
     BUG, IMPROVE, TASK = 'BUG', 'IMP', 'TSK'
     TAG_CHOICES = [
         (BUG, 'BUG'),
-        (IMPROVE, 'AMÉLIORATION'),
-        (TASK, 'TÂCHE'),
+        (IMPROVE, 'IMPROVEMENT'),
+        (TASK, 'TASK'),
     ]
     TODO, DOING, DONE = 'TOD', 'DOI', 'DON'
     STATUS_CHOICES = [
-        (TODO, 'À faire'),
-        (DOING, 'En cours'),
-        (DONE, 'Terminé'),
+        (TODO, 'TO DO'),
+        (DOING, 'DOING'),
+        (DONE, 'DONE'),
     ]
 
     title = models.CharField(_('title'), max_length=128, unique=True)

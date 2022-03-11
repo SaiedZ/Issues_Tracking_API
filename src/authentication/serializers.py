@@ -1,9 +1,14 @@
 from .models import User
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import PasswordField
+'''from django.contrib.auth.hashers import make_password'''
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
     """ Serializer for User model """
+
+    password = PasswordField()
 
     class Meta:
         model = User
@@ -11,6 +16,11 @@ class CreateUserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
+
+    def validate_password(self, password):
+        if validate_password(password) is None:
+            # return make_password(password)
+            return password
 
     def create(self, validated_data):
         """ Create and return new user"""

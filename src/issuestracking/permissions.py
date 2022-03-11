@@ -31,7 +31,6 @@ class CheckIsProjectMemberOrContrCreaMixin:
             project_id=project_pk, user_id=request.user.id
         )
         user_contributor_exist = user_contributor.exists()
-
         if (
             user_contributor_exist
             and view.action == 'create'
@@ -69,7 +68,7 @@ class IsProjectManagerOrReadOnlyContributorObject(
         project_managers = models.Contributor.objects.filter(
             project_id=obj.project_id, permission="CREA"
         )
-        if project_managers.count() == 1:
+        if project_managers.count() == 1 and obj.permission == "CREA":
             return False
         user_contrib = models.Contributor.objects.filter(
             project_id=obj.project_id, user_id=request.user.id
